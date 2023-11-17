@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id             Int      @id @default(autoincrement())
+  username       String?  @unique @db.VarBit(16)
+  email          String?  @unique
+  password       String?
+  online_connect Boolean? @default(false)
+  games          Game[]
+  wallet         Wallet?
+  your_friends   Player[] @relation("Player friend")
+  friend_friends Player[] @relation("Player friend")
+}
+
+model Wallet {
+  id        Int      @id @default(autoincrement())
+  player    Player   @relation(fields: [player_id], references: [id])
+  value     Decimal? @default(0) @db.Money
+  player_id Int      @unique
+}
+
+model Game {
+  id               Int      @id @default(autoincrement())
+  name             String?  @unique @db.VarChar(50)
+  price            Decimal? @db.Money
+  players          Player[]
+  developer_studio Studio?  @relation(fields: [studio_id], references: [id])
+  studio_id        Int
+  dlc              DLC[]
+}
+
+model Studio {
+  id    Int     @id @default(autoincrement())
+  name  String? @unique @db.VarChar(30)
+  games Game[]
+}
+
+model DLC {
+  id           Int      @id @default(autoincrement())
+  name         String?  @db.VarChar(50)
+  price        Decimal? @db.Money
+  is_available Boolean?
+  game         Game?    @relation(fields: [game_id], references: [id])
+  game_id      Int
+}
